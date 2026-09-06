@@ -445,6 +445,18 @@ class JavaneseCalendar:
         self.lapan_start_date = self.greg_date + datetime.timedelta(days=days_to_lapan_start)
 
         # --------------------------------------------------------------------
+        # 5N. HARI SEJAK ANGGARA KASIH TERAKHIR
+        # --------------------------------------------------------------------
+        # Anggara Kasih = Selasa Kliwon = hari ke-4 dari epoch (Jumat Legi)
+        # 1 Masa-Wuku = 35 hari, selalu dimulai pada Anggara Kasih
+        first_AK = 4  # hari ke-4 adalah Selasa Kliwon pertama
+        if self.days_since_epoch >= first_AK:
+            last_AK_offset = first_AK + 35 * ((self.days_since_epoch - first_AK) // 35)
+            self.days_since_last_AK = self.days_since_epoch - last_AK_offset
+        else:
+            self.days_since_last_AK = 0
+
+        # --------------------------------------------------------------------
         # 5L. DAPUR WUKU – halaman 23
         # --------------------------------------------------------------------
         self.dapur_wuku_count = self.days_since_epoch // 210
@@ -577,13 +589,14 @@ class JavaneseCalendar:
             f"📆 Bulan     : {self.month_name_jawa} {self.day_of_month}\n"
             f"📌 Dina      : {self.day_name} {self.pasaran_name} {self.paringkelan_name}\n"
             f"🌀 Wuku      : {self.wuku_number}. {self.wuku_name}\n"
-            f"⏳ Masa-Wuku : {self.masa_wuku_name} (nuju Anggara Kasih wuku {self.anggara_kasih_wuku})\n"
+            f"⏳ Masa-Wuku : {self.masa_wuku_name} ({self.days_since_last_AK} hari sejak Anggara Kasih wuku {self.anggara_kasih_wuku})\n"        
             f"🔁 Windu     : {self.macro_windu_number}. {self.macro_windu_name}\n"
             f"🔰 Kurup     : {self.kurup_number}. {self.churuf_name}\n"
             f"🏷️ Lambang   : {self.lambang_wuku}\n"
             f"{progress_line}\n"
             f"📌 Bulan tanpa Anggara Kasih : {suwung_str}"
-        )
+        )            
+
 
     def to_dict(self) -> Dict[str, Any]:
         """
@@ -621,6 +634,7 @@ class JavaneseCalendar:
             'lapan_number': self.lapan_number,
             'lapan_total': self.lapan_total,
             'lapan_start_date': self.lapan_start_date.isoformat(),
+            'days_since_last_AK': self.days_since_last_AK,
             'windu_start_year': self.windu_start_year,
             'windu_total_days': self.windu_total_days,
             'days_since_windu_start': int(self.days_since_windu_start),
