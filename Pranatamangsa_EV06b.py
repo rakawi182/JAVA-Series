@@ -959,8 +959,8 @@ def astro_delta_str(key: str) -> str:
 # ══════════════════════════════════════════════════════════════════════
 
 CIRI_BASE = {
-    1:  "Awal tahun pertanian; membersihkan lahan, tanah kering maksimum.",
-    2:  "Pohon randu/kapuk mulai berdaun. Tanah retak. Pengolahan lahan kering.",
+    1:  "Awal tahun pertanian; membersihkan lahan, tanah mengering.",
+    2:  "Pohon randu/kapuk mulai merekah. Tanah retak. Pengolahan lahan kering.",
     3:  "Puncak kemarau, sumur mengering. Panen palawija (jagung, kacang).",
     4:  "Burung gelatik di sawah, manyar membuat sarang. Angin mulai berubah ke barat.",
     5:  "Awal hujan. Pleiades terlihat di senja. Embun beracun.",
@@ -1321,7 +1321,7 @@ IOD_DELTA: Dict[str, Dict[int, Tuple[float, ...]]] = {
          2: ( +0.000,  +0.000,  +0.000,  +0.000,  +0.000,  +0.000),
          3: ( -0.841,  +0.468,  +2.365,  -0.423,  -1.459,  +5.183),
          4: ( -0.831,  +0.217,  +2.437,  -0.383,  -1.149,  +4.998),
-         5: ( -0.363,  -0.064,  +1.149,  -0.112,  -0.319,  +1.964),
+         5: ( -0.487,  -0.064,  +1.359,  -0.112,  -0.319,  +1.964),
          6: ( +0.000,  +0.000,  +0.000,  +0.000,  +0.000,  +0.000),
          7: ( +0.000,  +0.000,  +0.000,  +0.000,  +0.000,  +0.000),
          8: ( +0.000,  +0.000,  +0.000,  +0.000,  +0.000,  +0.000),
@@ -1336,8 +1336,8 @@ IOD_DELTA: Dict[str, Dict[int, Tuple[float, ...]]] = {
 # Bobot aplikasi IOD (fraksi dari delta komposit)
 # 0.30 bila IOD standalone (ENSO netral)
 # 0.50 bila IOD sekutu ENSO (El Niño + pIOD, La Niña + nIOD)
-_BOBOT_IOD_STANDALONE   = 0.30
-_BOBOT_IOD_KOMBINASI    = 0.50
+_BOBOT_IOD_STANDALONE = 0.30
+_BOBOT_IOD_KOMBINASI  = 0.50
 
 
 def _iod_delta_for_dopy_range(dopy_s: float, dopy_e: float,
