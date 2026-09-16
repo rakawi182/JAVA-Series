@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Pranatamangsa_EV05.py
+Pranatamangsa_EV06b.py
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 KALENDER PRANATA MANGSA — METEO(DAILY+6H) + ENSO + ASTRONOMI
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -9,13 +9,13 @@ KALENDER PRANATA MANGSA — METEO(DAILY+6H) + ENSO + ASTRONOMI
 SUMBER DATA METEOROLOGI
   · Titik Target  : −7.5220°LS, 112.5661°BT (MJS Obs., EAST JAVA), 28 m dpl
   · Stasiun P1    : ERA5/ERA5LandOpen/IFSHRES Open-Meteo — daily 1950–2026,
-                    6-jam 2015–2026
+                    6-jam 2015–2026, hourly 2015–2026
                     Koordinat: −7.486819°LS, 112.538210°BT · Elev: 28 m dpl
   · Stasiun P2    : ERA5/ERA5LandOpen/IFSHRES Open-Meteo — daily 1940–2026,
-                    6-jam 1995–2026
+                    6-jam 1995–2026, hourly 2015–2026
                     Koordinat: −7.5571175°LS, 112.557350°BT · Elev: 28 m dpl
     Interpolasi   : Inverse Distance Weighting (IDW, power=2)
-                    w1=0.3950 (P1), w2=0.6050 (P2)
+                    w1=0.3953 (P1), w2=0.6047 (P2)
   · ENSO Niño3.4 mingguan — AVISO/DUACS, 1993–2026
 
 SUMBER DATA ASTRONOMIS
@@ -99,7 +99,7 @@ TEMUAN KALIBRASI METEOROLOGI 6H (EV04 vs EV03)
 
 TEMUAN KALIBRASI METEOROLOGI 6H (EV05 → EV06)
   · Rekalibrasi METEO_MANGSA_6H dari ERA5/Land 1H (hourly) P1:
-    Sumber: open-meteo-7.49S112.54E28m_hourly10yr.csv
+    Sumber: open-meteo-7_49S112_54E28m_hourly10yr.csv
     Periode: 2015–2025 (11 tahun, 96.432 jam, coverage 100% tiap tahun)
     Metode VPD  : rata² 24 jam (true diurnal average, bukan snapshot 6H)
     Metode sun_h: sum(sunshine_duration_s)/3600 per hari → rata² per mangsa
@@ -139,60 +139,34 @@ TEMUAN KALIBRASI METEOROLOGI 6H (EV05 → EV06)
         Rendheng: vpd 0.413→0.468 (+0.055), sun  9.7→8.4  (−1.3)
         Mareng:   vpd 0.758→0.877 (+0.119), sun 10.7→10.1 (−0.6)
 
-  · ANALISIS UNCERTAINTY EV05 vs EV06 (4 sumber):
-      A. Sampling precision (SE = SD/√n) : BERKURANG 2.4× di EV06
-      B. Coverage bias (11 vs 30 thn)   : TETAP — justru periode modern
-      C. Tren temporal (dalam 11 thn)   : MUNCUL BARU — 3 mangsa punya tren VPD
-      D. Diurnal sampling (6H vs 24H)   : DIELIMINASI di EV06
+TEMUAN KALIBRASI METEOROLOGI 6H (EV06 → EV06b)
+  · Rekalibrasi IDW P1+P2 hourly (w1=0.3953, w2=0.6047):
+    Sumber: P1 & P2 hourly 2015–2026 (~102.500 baris masing-masing)
+    Overlap: 2015-01-01 → 2026-09-09 (102.480 baris)
+    Jarak P1–P2: 8.05 km; korelasi r_vpd = 0.90–0.98
 
-  · Tabel uncertainty per mangsa (95% CI ≈ ±2×SE):
-      No  Mangsa      EV05_vpd±CI   EV06_vpd±CI  ratio_CI | EV05_sun±CI  EV06_sun±CI  ratio_CI
-      1   Kasa       1.159±0.427   1.387±0.174    2.4×   | 11.3±0.28    10.9±0.12     2.4×
-      2   Karo       1.350±0.387   1.597±0.158    2.4×   | 11.4±0.12    11.0±0.05     2.4×
-      3   Katiga     1.480±0.401   1.716±0.164    2.4×   | 11.3±0.37    11.0±0.15     2.4×
-      4   Kapat      1.436±0.706   1.621±0.288    2.4×   | 11.0±1.44    10.9±0.59     2.4×
-      5   Kalima     1.009±0.751   1.208±0.306    2.4×   | 10.4±2.07    10.1±0.85     2.4×
-      6   Kanem      0.514±0.231   0.649±0.094    2.4×   |  9.3±1.34     8.6±0.55     2.4×
-      7   Kapitu     0.405±0.109   0.455±0.045    2.4×   |  9.4±0.96     7.8±0.39     2.4×
-      8   Kawolu     0.397±0.108   0.451±0.044    2.4×   |  9.8±1.31     8.5±0.54     2.4×
-      9   Kasanga    0.447±0.111   0.509±0.045    2.4×   | 10.2±1.20     9.1±0.49     2.4×
-      10  Kasadasa   0.539±0.219   0.644±0.089    2.4×   | 10.4±1.08     9.6±0.44     2.4×
-      11  Desta      0.734±0.389   0.953±0.159    2.4×   | 10.7±0.76    10.3±0.31     2.4×
-      12  Sada       0.902±0.443   1.041±0.181    2.4×   | 11.0±0.77    10.3±0.31     2.4×
+    Nilai baru per mangsa (IDW P1+P2 vs P1-only):
+        Kasa(1): 1.387→1.352 (−0.035)   Karo(2): 1.597→1.551 (−0.046)
+        Katiga(3): 1.716→1.690 (−0.026) Kapat(4): 1.621→1.601 (−0.020)
+        Kalima(5): 1.208→1.181 (−0.027) Kanem(6): 0.649→0.629 (−0.020)
+        Kapitu(7): 0.455→0.467 (+0.012) Kawolu(8): 0.451→0.468 (+0.017)
+        Kasanga(9): 0.509→0.532 (+0.023) Kasadasa(10): 0.644→0.656 (+0.012)
+        Desta(11): 0.953→0.949 (−0.004) Sada(12): 1.041→1.021 (−0.020)
 
-  · Bias representasi periode (Tipe B): +Tx, −RH di 2015–2025 vs R30.
-      Δtx berkisar +0.56…+1.14 °C; Δrh −1.8…−5.1%.
-      Koreksi bias periode menurunkan VPD EV06 sebesar −0.02…−0.17 kPa
-      (Δvpd_B −0.034…−0.237 kPa pada tabel penuh).
-      Artinya: periode 2015–2025 condong lebih kering/panas dari R30.
-      Nilai EV06 tanpa koreksi justru lebih relevan untuk kondisi saat ini;
-      koreksi B opsional bila ingin representasi R30 penuh.
+    → Semua perubahan VPD < 0.05 kPa (< 3%). Tanda berubah di
+      Rendheng: P2 (lebih selatan) sedikit lebih kering dari P1.
 
-  · Verdict uncertainty EV05 vs EV06:
-      ✓ BERKURANG:
-          - Tipe A: sampling precision 2.4× lebih presisi (SE lebih kecil).
-          - Tipe D: diurnal bias 6H dieliminasi; tidak ada lagi interpolasi ×6.
-            EV05 sun_h overestimate hingga +4.6 jam/hari di Karo;
-            EV05 VPD underestimate hingga −5.8% di Karo.
-      ≈ TETAP:
-          - Tipe B: coverage 11 thn tetap 11 thn.
-            Namun bias periode modern (warmer, drier) lebih relevan untuk
-            proyeksi kalender tahun-tahun mendatang.
-      ! BARU — Tipe C, tren VPD dalam 2015–2025:
-          - Kapitu   : +0.016 kPa/tahun (p=0.014) ← SIGNIFIKAN
-          - Kasanga  : +0.013 kPa/tahun (p=0.070) ← marginal
-          - Kasadasa : +0.024 kPa/tahun (p=0.097) ← marginal
-          → Nilai VPD di Kapitu–Kasadasa bergerak selama periode kalibrasi.
-          → 95% CI harus diperlebar ~20% untuk 3 mangsa ini.
-          → Mencerminkan pemanasan di musim Rendheng–Mareng (perubahan iklim).
+    Perubahan METEO_MUSIM_6H (EV06 → EV06b):
+        Katiga:   vpd 1.531→1.496 (−0.035), tcwv 35.2→35.0
+        Labuh:    vpd 1.062→1.042 (−0.020), tcwv 47.7→47.4
+        Rendheng: vpd 0.468→0.484 (+0.016), tcwv 53.3→53.0, sun 8.4→8.3
+        Mareng:   vpd 0.877→0.902 (+0.025), tcwv 46.2→45.4
 
-  · REKOMENDASI:
-      1. EV06 lebih akurat dan lebih presisi dari EV05 secara keseluruhan.
-      2. Untuk 3 mangsa dengan tren signifikan (Kapitu, Kasanga, Kasadasa):
-         tambahkan catatan “nilai VPD cenderung naik ~0.016–0.024 kPa/tahun”.
-      3. Koreksi bias periode B (−0.02…−0.17 kPa) dapat diterapkan bila
-         ingin nilai representatif R30 keseluruhan, tetapi nilai EV06
-         tanpa koreksi lebih relevan untuk kondisi saat ini.
+    Manfaat IDW P1+P2:
+      · SE VPD kemarau (M1–M6) turun 2–8% (representasi spasial lebih baik)
+      · SE VPD Rendheng (M7–M9) naik 0.4–9.7% — mencerminkan variabilitas
+        spasial hujan yang memang lebih tinggi, bukan degradasi akurasi
+      · Konsisten dengan metodologi 6H EV05 yang juga memakai IDW
 
 TEMUAN KALIBRASI METEOROLOGI 6H (EV04 → EV05)
   · Recompute METEO_MANGSA_6H field sun_h & vpd:
@@ -218,27 +192,131 @@ CATATAN PENEMPATAN CIRI (koreksi EV03, diwarisi EV04)
   · Mulai EV03, penempatan penanda astro untuk skenario terkalibrasi
     dihitung otomatis oleh build_ciri() sesuai rentang dopy aktual.
 
-CATATAN KETERBATASAN
-  · Kalibrasi meteorologi (12 mangsa via time-warp musim) tetap dari EV01;
-    pada EV03/EV04 hanya skenario R10 yang di-rekalibrasi ulang (6H).
-  · Kalibrasi astronomis tidak mengubah batas musim/mangsa; hanya mengoreksi
-    referensi tanggal dalam teks deskripsi (CIRI) & penempatan dinamis.
-  · Pergeseran astronomis terkecil: zenith & solstis <1 hari → praktis tidak
-    mengubah kalender. Pergeseran Orion heliacal rise +3 hr dan acronychal set
-    +15 hr vs tradisional mencerminkan pergeseran presesi ~170 tahun
-    (1855→2025) sebesar ~2°.
-  · Kulminasi tengah malam Orion (8 Des) vs tradisional (1 Mar) adalah
-    perbedaan DEFINISI, bukan presesi — tradisional mengacu transit siang,
-    EV02/EV03/EV04 mengacu tengah malam.
-  · Composite Wetness Index 6H menggunakan sampel 10 tahun (2015–2024);
-    uncertainty musim-start ±12–35 hari, didominasi variabilitas ENSO.
-    Metode alternatif (K-means 5-fitur 6H) memberi {12, 122, 155, 294};
-    dipilih composite karena lebih stabil terhadap outlier.
-  · Analisis uncertainty EV06: sampling precision 2.4× lebih baik dari EV05;
-    diurnal bias 6H dieliminasi; coverage 11 thn tetap; tren VPD signifikan
-    di Kapitu/Kasanga/Kasadasa; bias periode modern (+Tx, −RH) menurunkan VPD
-    −0.02…−0.17 kPa bila dikoreksi ke R30. Untuk Kapitu, Kasanga, Kasadasa,
-    95% CI VPD perlu diperlebar ~20% karena tren temporal dalam 2015–2025.    
+CATATAN KETERBATASAN DAN ANALISIS KETIDAKPASTIAN
+
+  I. KETERBATASAN KALIBRASI METEOROLOGI
+
+  I.1  Rentang periode data hourly
+       Rekalibrasi METEO_MANGSA_6H menggunakan data ERA5/Land IFS HRES
+       resolusi 1 jam dari DUA stasiun referensi (P1 −7.487°LS 112.538°BT
+       dan P2 −7.557°LS 112.557°BT, keduanya elevasi 28 m) untuk periode
+       2015–2025 (11 tahun, IDW-merged 102.480 titik overlap). Periode
+       referensi klimatologis standar WMO adalah 30 tahun (1991–2020 atau
+       1996–2025). Penggunaan 11 tahun mengurangi jumlah derajat bebas
+       dan meningkatkan ketidakpastian estimasi mean.
+
+  I.2  Bias kehangatan periode modern
+       Analisis komparatif terhadap data harian P1 1996–2025 (R30) menunjukkan
+       bahwa periode 2015–2025 secara sistematis lebih hangat (+0.6–1.1°C pada
+       suhu udara maksimum) dan lebih kering (kelembaban relatif lebih rendah
+       1.8–5.1%) dibandingkan rata-rata R30 secara keseluruhan. Perbedaan ini
+       mencerminkan sinyal pemanasan iklim regional, bukan artefak sampling.
+       Konsekuensinya, nilai VPD dalam METEO_MANGSA_6H kemungkinan merepresentasi
+       kondisi dekade terkini dengan lebih baik daripada kondisi rata-rata 30 tahun,
+       namun berpotensi melebihi estimasi klimatologis stasioner jangka panjang
+       sebesar 0.02–0.24 kPa bergantung pada mangsa.
+
+  I.3  Representasi spasial
+       EV06b menggunakan IDW P1+P2 hourly (w1=0.3953, w2=0.6047), dengan
+       korelasi r_vpd = 0.90–0.98 antar stasiun. Bobot IDW konsisten dengan
+       EV05. Variabilitas Rendheng yang lebih tinggi di P2 (bias_vpd P2−P1
+       = +0.02 s/d +0.04 kPa) terefleksikan dalam CI yang lebih lebar —
+       informasi fisis yang valid, bukan degradasi akurasi mean.
+       (Keterbatasan satu stasiun pada EV06 awal telah teratasi.)
+
+  I.4  Kalibrasi musim_start dan batas mangsa
+       Batas musim (musim_start) dan penggabungan mangsa tetap dari EV04–EV05
+       (berbasis Composite Wetness Index, data 6H 2015–2024). Uncertainty
+       musim_start: ±12–35 hari, didominasi variabilitas ENSO interannual.
+       Metode alternatif K-means 5-fitur menghasilkan batas berbeda hingga 9 hari
+       untuk Labuh; composite dipilih karena lebih robust terhadap outlier ENSO.
+
+  II. ANALISIS KETIDAKPASTIAN METEO_MANGSA_6H (EV06b)
+
+  Empat komponen ketidakpastian diidentifikasi dan dikuantifikasi:
+
+  II.A  Ketidakpastian Tipe A — Presisi Estimasi (SE interannual)
+        Dihitung sebagai SE = σ/√n, dengan σ = standar deviasi nilai tahunan
+        dan n = 11 tahun. Interval kepercayaan 95% = ±2·SE.
+
+        Komponen ini BERKURANG 2.4× dibandingkan EV05 (P1-only 6H snapshot),
+        dan sedikit lebih baik dari EV06 (P1-only hourly) di musim kemarau.
+
+        95% CI VPD representatif per mangsa (EV06b IDW P1+P2):
+          Kasa:        1.352 ± 0.168 kPa    Kapat:     1.601 ± 0.285 kPa
+          Karo:        1.551 ± 0.152 kPa    Kalima:    1.181 ± 0.296 kPa
+          Katiga:      1.690 ± 0.160 kPa    Kanem:     0.629 ± 0.087 kPa
+          Kapitu:      0.467 ± 0.045 kPa    Kawolu:    0.468 ± 0.048 kPa
+          Kasanga:     0.532 ± 0.048 kPa    Kasadasa:  0.656 ± 0.092 kPa
+          Desta:       0.949 ± 0.157 kPa    Sada:      1.021 ± 0.168 kPa
+
+        95% CI sun_h representatif per mangsa (EV06b IDW P1+P2):
+          Kasa:  10.84 ± 0.12 j    Kapat: 10.94 ± 0.59 j    Kapitu:   7.70 ± 0.39 j
+          Karo:  11.00 ± 0.05 j    Kalima:10.11 ± 0.86 j    Kawolu:   8.47 ± 0.53 j
+          Katiga:11.04 ± 0.15 j    Kanem:  8.53 ± 0.56 j    Kasanga:  9.11 ± 0.51 j
+          Kasadasa: 9.62 ± 0.45 j  Desta: 10.34 ± 0.31 j    Sada:    10.34 ± 0.31 j
+
+  II.B  Ketidakpastian Tipe B — Bias Representasi Periode
+        Periode 2015–2025 tidak sepenuhnya representatif untuk norma klimatologis
+        R30 (1996–2025). Bias yang teridentifikasi:
+          · Suhu udara maksimum: +0.56 s/d +1.14°C (Kapitu s/d Kalima)
+          · Kelembaban relatif: −1.8 s/d −5.1% (Kasanga s/d Karo)
+        Estimasi koreksi VPD jika dikembalikan ke baseline R30: −0.03–−0.24 kPa.
+        Koreksi tidak diterapkan karena nilai EV06b dinilai lebih representatif
+        untuk kondisi iklim masa kini dan proyeksi jangka pendek.
+
+  II.C  Ketidakpastian Tipe C — Non-stasioneritas Temporal
+        Regresi linier VPD terhadap waktu (2015–2025) menunjukkan tren yang
+        bermakna secara statistik pada tiga mangsa berikut:
+
+          Kapitu (7):   +0.016 kPa/tahun  (p = 0.014, signifikan α=0.05)
+          Kasanga (9):  +0.013 kPa/tahun  (p = 0.070, marginal α=0.10)
+          Kasadasa (10):+0.024 kPa/tahun  (p = 0.097, marginal α=0.10)
+
+        Keberadaan tren ini mengindikasikan bahwa nilai mean tunggal yang
+        tercantum dalam METEO_MANGSA_6H untuk ketiga mangsa tersebut bersifat
+        non-stasioner — nilai VPD aktual pada akhir periode kalibrasi (2023–2025)
+        lebih tinggi dari nilai yang tercantum. Interval kepercayaan untuk ketiga
+        mangsa ini perlu diperlebar ≈20% untuk mengakomodasi ketidakpastian akibat
+        tren. Untuk sun_h tidak ditemukan tren bermakna pada mangsa mana pun
+        (semua p > 0.11), sehingga nilai sun_h dinilai stasioner.
+
+        Interpretasi fisis: tren VPD di Kapitu–Kasadasa (Januari–April)
+        mencerminkan pemanasan musim Rendheng–Mareng yang konsisten dengan
+        proyeksi pemanasan iklim regional Jawa Timur.
+
+  II.D  Bias Diurnal Sampling (EV05, telah dieliminasi sejak EV06)
+        EV05 menggunakan snapshot 6H (jam 00, 06, 12, 18 UTC+7) untuk mengestimasi
+        VPD dan sun_h harian. Analisis terhadap data 1H menunjukkan bias sistematis:
+          · VPD: underestimate −2.5 s/d −5.8% (jam malam dapat bobot >50%)
+          · sun_h: overestimate hingga +4.66 jam/hari di Karo dan Kasa
+                   (sunshine_duration snapshot siang dikalikan ×6, overestimasi
+                    periode cerah antara dua titik pengukuran)
+        Kedua bias ini bersifat sistematik dan searah untuk semua mangsa.
+        Sejak EV06, bias ini dieliminasi sepenuhnya melalui penggunaan data 1H.
+
+  III. KETERBATASAN KALIBRASI ASTRONOMIS
+       · Kalibrasi mencakup rentang 2020–2029; presisi menurun untuk tahun
+         di luar rentang tersebut akibat akumulasi ketidakpastian ΔT.
+       · Kulminasi Tengah Malam Orion (8 Des): merujuk transit tengah malam
+         00:00 WIB. Tradisi mengacu kulminasi senja (1 Mar) — perbedaan definisi,
+         bukan presesi.
+       · Orion Acronychal Set (18 Jun, dopy=361.9) berbeda 15 hari dari tradisi
+         (4 Jun, dopy=347) karena tradisi mengacu heliacal set fajar (definisi
+         berbeda). Presesi 170 tahun (1855→2025) berkontribusi ≈2° (~±3 hari).
+
+  IV. KETERBATASAN MODUL IOD
+      · IOD_DELTA dikalibrasi dari 8 tahun pIOD (1961–2019, inkl. pre-1979)
+        dan 7 tahun nIOD (1960–2024). Ukuran sampel ini berada di bawah batas
+        minimum yang direkomendasikan (n≥10) untuk estimasi komposit yang stabil.
+      · Co-occurrence IOD–ENSO ~60–67%: filter ENSO diterapkan (|ASO Niño3.4|
+        ≥0.50), namun interaksi nonlinier IOD–ENSO tidak sepenuhnya terisolasi.
+      · Bobot aplikasi IOD (0.30 standalone, 0.50 sinergi ENSO–IOD) diturunkan
+        dari literatur (Hendon et al. 2012; Abram et al. 2008), bukan dioptimasi
+        secara empiris dari data lokal karena keterbatasan sampel.
+      · Window aktif IOD dibatasi pada mangsa 3–5 (SON, September–November);
+        efek lag IOD ke Kanem–Kapitu belum dimodelkan.
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 """
 
@@ -246,7 +324,7 @@ import os
 import sys
 import textwrap
 from datetime import date, timedelta, datetime
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 
@@ -712,7 +790,7 @@ CIRI = {
     6:  ("Weluku/Orion Acronychal Rise (pertama terlihat di senja): ~5 Des "
          "(dopy≈166.2). Kulminasi tengah malam Orion: ~8 Des (dopy≈168.9). "
          "Hujan lebat. Menabur benih padi. "
-         "[EV04] Solstis Desember 21 Des (dopy≈182.7) juga jatuh di Kanem, "
+         "[EV06] Solstis Desember 21 Des (dopy≈182.7) juga jatuh di Kanem, "
          "bukan di Kapitu — karena batas musim R30/R10 menempatkan Kapitu "
          "baru mulai setelah dopy≈196–208."),
     7:  ("Solstis Desember (21 Des, dopy≈182.7) secara astronomis berada di "
@@ -721,9 +799,9 @@ CIRI = {
          "Pleiades setinggi pecat sawad (~50°). "
          "Memindah bibit padi ke sawah."),
     8:  "Transplantasi selesai. Pleiades kulminasi di senja. Padi tumbuh. "
-        "[EV04] Zenith Matahari II (1 Mar, dopy≈252.5) dan Orion Kulminasi "
+        "[EV06] Zenith Matahari II (1 Mar, dopy≈252.5) dan Orion Kulminasi "
         "Senja (~1 Mar) jatuh di Kawolu untuk skenario R30/R10.",
-    9:  ("[EV04] Zenith Matahari II (dopy≈252.5) & Orion Evening Heliacal "
+    9:  ("[EV06] Zenith Matahari II (dopy≈252.5) & Orion Evening Heliacal "
          "Culmination (~26 Feb–1 Mar) secara astronomis berada di Mangsa-8 "
          "Kawolu untuk R30/R10; hanya pada skenario TRAD jatuh di Kasanga. "
          "Ekuinoks Maret 20 Mar (dopy≈271.8) di akhir Kasanga (R30). "
@@ -1056,45 +1134,44 @@ METEO_BULANAN: Dict[int, Tuple] = {
     12: ( 402, 13.0, 3.60,  9.35, 0.370, 81.7, 30.7, 23.3,  9.4, 17.2),
 }
 
-# ─── EV06: Klimatologi 6H-derived (rekalibrasi hourly) ───────────────
-# Basis: Open-Meteo Best Match, ERA5/Land IFS HRES 1H, stasiun P1 (−7.487°LS 112.538°BT 28 m)
-# Periode: 2015–2025 (11 tahun, 96.432 jam, coverage 100%)
+# ─── EV06b: Klimatologi 6H-derived (IDW P1+P2 hourly) ────────────────
+# Basis: ERA5/Land IFS HRES 1H, DUA stasiun P1+P2 IDW (w1=0.3953, w2=0.6047)
+# Periode: 2015–2025 (11 tahun, overlap 102.480 titik)
 # Metode:
 #   vpd     — rata² 24 jam (all-day, representasi seimbang siklus diurnal)
 #   sun_h   — sum(sunshine_duration)/3600 per hari → rata² per mangsa
-#             [lebih akurat dari 6H: sum detik aktual, bukan interpolasi]
 #   tcwv    — rata² 24 jam
 #   cloud   — rata² 24 jam
 #   cloud_aft— rata² jam 12–18 WIB (periode konvektif siang)
 #   sm_sh, sm_dp, sT_sh, sT_dp — tetap dari EV05 6H IDW (belum di-update)
-# Perubahan vs EV05:
-#   vpd   naik +0.05–+0.25 kPa (6H bias: malam dapat bobot >50%)
-#   sun_h turun −0.1–−1.6 jam  (6H overestimate di musim hujan)
-#   tcwv  naik +0.5–+3.7 kg/m² (resolusi lebih tinggi)
-#   cloud turun −1–−8%         (cloud_aft 12-18 menjadi dasar baru)
+# Perubahan vs EV06 (P1-only):
+#   vpd   turun −0.046 s/d +0.023 kPa (semua <3%)
+#   sun_h berubah <0.1 jam (negligible)
+#   tcwv  berubah <0.5 kg/m² (negligible)
 # Format: (vpd, tcwv, cloud, cloud_aft, sun_h, sm_sh, sm_dp, sT_sh, sT_dp)
 METEO_MANGSA_6H: Dict[int, Tuple] = {
-     1: (1.387, 35.4,  49,   55,  10.9,  0.154, 0.335, 26.9, 26.8),  # Kasa
-     2: (1.597, 33.9,  48,   51,  11.0,  0.132, 0.321, 27.7, 27.0),  # Karo
-     3: (1.716, 36.1,  55,   59,  11.0,  0.126, 0.312, 28.4, 27.2),  # Katiga
-     4: (1.621, 40.0,  66,   66,  10.9,  0.134, 0.301, 29.1, 27.5),  # Kapat
-     5: (1.208, 47.0,  77,   78,  10.1,  0.271, 0.291, 28.4, 27.9),  # Kalima
-     6: (0.649, 52.7,  90,   90,   8.6,  0.379, 0.291, 26.8, 27.9),  # Kanem
-     7: (0.455, 54.0,  92,   93,   7.8,  0.394, 0.377, 26.2, 27.2),  # Kapitu
-     8: (0.451, 52.9,  87,   90,   8.5,  0.396, 0.404, 26.2, 26.9),  # Kawolu
-     9: (0.509, 52.4,  84,   87,   9.1,  0.386, 0.403, 26.5, 26.7),  # Kasanga
-    10: (0.644, 49.7,  76,   78,   9.6,  0.360, 0.395, 26.6, 26.7),  # Kasadasa
-    11: (0.953, 45.4,  62,   65,  10.3,  0.313, 0.377, 26.9, 26.8),  # Desta
-    12: (1.041, 43.4,  60,   63,  10.3,  0.235, 0.356, 26.7, 26.8),  # Sada
+     1: (1.352, 35.2,  49,   55,  10.84, 0.154, 0.335, 26.9, 26.8),  # Kasa
+     2: (1.551, 33.7,  48,   51,  11.00, 0.132, 0.321, 27.7, 27.0),  # Karo
+     3: (1.690, 35.8,  55,   60,  11.04, 0.126, 0.312, 28.4, 27.2),  # Katiga
+     4: (1.601, 39.6,  65,   66,  10.94, 0.134, 0.301, 29.1, 27.5),  # Kapat
+     5: (1.181, 46.6,  77,   78,  10.11, 0.271, 0.291, 28.4, 27.9),  # Kalima
+     6: (0.629, 52.4,  91,   91,   8.53, 0.379, 0.291, 26.8, 27.9),  # Kanem
+     7: (0.467, 53.7,  92,   93,   7.70, 0.394, 0.377, 26.2, 27.2),  # Kapitu
+     8: (0.468, 52.7,  88,   90,   8.47, 0.396, 0.404, 26.2, 26.9),  # Kawolu
+     9: (0.532, 52.2,  84,   87,   9.11, 0.386, 0.403, 26.5, 26.7),  # Kasanga
+    10: (0.656, 49.5,  77,   79,   9.62, 0.360, 0.395, 26.6, 26.7),  # Kasadasa
+    11: (0.949, 45.2,  63,   66,  10.34, 0.313, 0.377, 26.9, 26.8),  # Desta
+    12: (1.021, 43.2,  61,   65,  10.34, 0.235, 0.356, 26.7, 26.8),  # Sada
 }
 
 METEO_MUSIM_6H: Dict[str, Tuple] = {
-    # EV06: rekalibrasi dari ERA5/Land 1H P1 2015–2025
+    # EV06b: IDW P1+P2 hourly, w1=0.395/w2=0.605, 2015–2025
+    # Nilai = rata² berbobot-durasi dari METEO_MANGSA_6H per rentang dopy R30
     # Format: (vpd, tcwv, cloud, sun_h)
-    "Katiga":   (1.531, 35.2,  50,  10.9),
-    "Labuh":    (1.062, 47.7,  80,   9.6),
-    "Rendheng": (0.468, 53.3,  89,   8.4),
-    "Mareng":   (0.877, 46.2,  66,  10.1),
+    "Katiga":   (1.496, 35.0,  50,  10.9),   # dopy 19–94  (75 hr)
+    "Labuh":    (1.042, 47.4,  80,   9.6),   # dopy 94–208 (114 hr)
+    "Rendheng": (0.484, 53.0,  89,   8.3),   # dopy 208–286 (78 hr)
+    "Mareng":   (0.902, 45.4,  66,  10.1),   # dopy 286–384 (98 hr)
 }
 
 # ─── EV05 rev.2: Ekstrem absolut per mangsa & per musim (R30 1996–2025) ──
@@ -1384,9 +1461,9 @@ def meteo_for_dopy_range(dopy_s: float, dopy_e: float,
     ── SUMBER DATA ────────────────────────────────────────────────────
     · METEO_MANGSA     : ERA5/ERA5-Land/IFS-HRES daily, R30 1996–2025,
                          IDW 2 stasiun (w1=0.395 P1, w2=0.605 P2).
-    · METEO_MANGSA_6H  : IDW-merged harian dari P1-hourly (2015–2026)
-                         + P2-6H (1995–2026), field sun_h & VPD
-                         direcompute EV05. Cloud, TCWV, SM, sT dari EV04.
+    · METEO_MANGSA_6H  : IDW-merged P1+P2 hourly (2015–2026), field
+                         vpd & sun_h direct dari hourly 1H EV06b.
+                         Cloud, TCWV, SM, sT dari EV04 (diwarisi).
 
     ── KOREKSI ENSO ───────────────────────────────────────────────────
     Jika enso_phase ∈ {ELNINO, LANINA}, delta empiris dari
@@ -1956,10 +2033,11 @@ DEFAULT_METEO_CSV2  = "open-meteo-7.56S112.56E28m.csv"
 DEFAULT_METEO_6H    = "open-meteo-7.49S112.54E28m_6hour10yr.csv"
 DEFAULT_METEO_6H_2  = "open-meteo-7.56S112.56E28m_6hour10yr.csv"
 DEFAULT_METEO_HOURLY = "open-meteo-7.49S112.54E28m_hourly10yr.csv"  # P1 hourly — prioritas utama
+DEFAULT_METEO_HOURLY_2 = "open-meteo-7.56S112.56E28m_hourly10yr.csv"  # P2 hourly — prioritas
 DEFAULT_ENSO_CSV    = "Sst_nino34_index.csv"
 DEFAULT_MSLA_CSV    = "Msla_nino34_index.csv"
-DEFAULT_IOD_DMI     = "30yr_dmi_3rmean.txt"  
-DEFAULT_IOD_WEEKLY  = "iod_1.txt" 
+DEFAULT_IOD_DMI     = "30yr_dmi_3rmean.txt"
+DEFAULT_IOD_WEEKLY  = "iod_1.txt"
 
 LAT_TARGET = -7.521951
 LON_TARGET = 112.566089
@@ -1970,8 +2048,11 @@ LAT_P2, LON_P2 = -7.5571175, 112.55735
 def _log_mvn(X, mean, cov):
     cov = np.asarray(cov) + 1e-6 * np.eye(len(mean))
     if HAS_SCIPY:
-        from scipy.stats import multivariate_normal
-        return multivariate_normal.logpdf(X, mean=mean, cov=cov)
+        try:
+            from scipy.stats._multivariate import multivariate_normal_gen
+            return multivariate_normal_gen().logpdf(X, mean=mean, cov=cov)
+        except Exception:
+            pass
     d    = len(mean)
     diff = X - np.array(mean)
     inv  = np.linalg.inv(cov)
@@ -2098,21 +2179,144 @@ def load_interpolated_meteo(csv1=DEFAULT_METEO_CSV, csv2=DEFAULT_METEO_CSV2,
     return _idw_merge(_read(path1), _read(path2), w1, w2).reset_index(drop=True)
 
 
+def _read_openmeteo_csv(path: str) -> "pd.DataFrame":
+    """Baca CSV Open-Meteo (skip 3 baris header) dan normalisasi kolom waktu.
+
+    Dipisahkan sebagai helper modul-level agar dipakai bersama oleh
+    :func:`load_interpolated_meteo`, :func:`load_interpolated_6h`, dan
+    :func:`_aggregate_to_daily` — memastikan konsistensi pembacaan CSV
+    di seluruh pipeline.
+    """
+    df = pd.read_csv(path, skiprows=3)
+    df["time"] = pd.to_datetime(df["time"])
+    return df.sort_values("time").reset_index(drop=True)
+
+
+def _aggregate_to_daily(
+    m: "pd.DataFrame", aft_slots: Sequence[int], sec_per_slot: int,
+) -> "pd.DataFrame":
+    """Agregasi sub-harian ke harian secara tervektorisasi (EV06b rev.).
+
+    ── MENGAPA FUNGSI INI DITULIS ULANG ────────────────────────────────
+    Versi EV06b sebelumnya memakai pola::
+
+        m.groupby("_date").apply(_agg)   # _agg: fungsi Python per grup
+
+    yang mengeksekusi loop Python sebanyak jumlah hari (~3.650) × jumlah
+    stasiun (2) = ~7.300 iterasi. Di setiap iterasi, ~10 cabang ``if``
+    dicek ulang, ~10 reducer pandas dipanggil pada sub-DataFrame kecil,
+    dan sebuah ``pd.Series`` baru dibangun — menghasilkan overhead
+    dominan yang membuat ``live_nowcast`` terasa lambat (10–40 detik
+    hanya untuk tahap agregasi).
+
+    Versi ini menggantinya dengan **reducer groupby langsung**
+    (``GroupBy.mean/max/min/sum``) yang diimplementasikan pada level
+    Cython/C — eksekusi hanya sekali per kolom untuk seluruh dataset,
+    tanpa loop Python per grup.
+
+    ── KESETARAAN HASIL ────────────────────────────────────────────────
+    Output numerik **identik** dengan versi lama. Semua field dihitung
+    dengan rumus yang sama; yang berubah hanya *cara eksekusi*. Secara
+    matematis:
+
+    · Mean per grup     : sama persis (mean tidak sensitif urutan).
+    · DTR (max−min)     : sama persis.
+    · Cloud aft (12–18) : filter baris dulu, lalu groupby — setara dengan
+      filter per grup karena ``_hour`` sudah tersedia di DataFrame.
+    · Sunshine (sum/3600): sama. ``.sum()`` dengan ``skipna=True`` default
+      memperlakukan NaN sebagai 0, identik dengan ``fillna(0).sum()``.
+      (Kasus tepi all-NaN: kedua versi juga mengembalikan 0.)
+    · SW rad (sum·sec/1e6): sama persis.
+
+    ── CATATAN SKEMA KOLOM ─────────────────────────────────────────────
+    Pengecekan keberadaan kolom dilakukan **sekali** di luar groupby,
+    bukan per grup. Untuk file Open-Meteo dengan skema yang konsisten
+    (semua kolom ada di seluruh rentang), ini setara dengan versi lama.
+    Perbedaan hanya muncul pada file parsial/korup — bukan skenario
+    normal — dan justru lebih cepat terdeteksi di sini.
+
+    Parameters
+    ----------
+    m : pd.DataFrame
+        DataFrame sub-harian dengan kolom ``time`` (datetime) dan kolom
+        meteorologi Open-Meteo (nama kolom panjang dengan satuan).
+    aft_slots : sequence of int
+        Daftar jam (dalam UTC+7 lokal) untuk menghitung ``cloud_aft``.
+        Untuk data 1H: ``range(12, 18)``. Untuk data 6H: ``[12, 18]``.
+    sec_per_slot : int
+        Durasi satu slot dalam detik. Untuk data 1H: 3600.
+        Untuk data 6H: 21600.
+
+    Returns
+    -------
+    pd.DataFrame
+        Kolom harian: ``tcwv``, ``dtr``, ``cloud_mean``, ``cloud_aft``,
+        ``sm28_100``, ``sm_sh``, ``sT_sh``, ``sT_dp``, ``sunshine_h``,
+        ``sw_rad_MJ``, ``vpd`` — semua terindeks pada kolom ``time``
+        yang sudah dinormalisasi ke tanggal (tanpa jam).
+    """
+    m = m.copy()
+    m["_date"] = pd.to_datetime(m["time"]).dt.normalize()
+    m["_hour"] = pd.to_datetime(m["time"]).dt.hour
+    g = m.groupby("_date")
+
+    agg: Dict[str, "pd.Series"] = {}
+    col_map = {
+        "tcwv":     "total_column_integrated_water_vapour (kg/m²)",
+        "cloud_mean": "cloud_cover (%)",
+        "sm28_100": "soil_moisture_28_to_100cm (m³/m³)",
+        "sm_sh":    "soil_moisture_0_to_7cm (m³/m³)",
+        "sT_sh":    "soil_temperature_0_to_7cm (°C)",
+        "sT_dp":    "soil_temperature_100_to_255cm (°C)",
+        "vpd":      "vapour_pressure_deficit (kPa)",
+    }
+    for out_name, src in col_map.items():
+        if src in m.columns:
+            agg[out_name] = g[src].mean()
+
+    if "temperature_2m (°C)" in m.columns:
+        agg["dtr"] = (g["temperature_2m (°C)"].max()
+                      - g["temperature_2m (°C)"].min())
+
+    if "cloud_cover (%)" in m.columns:
+        aft = (m[m["_hour"].isin(aft_slots)]
+               .groupby("_date")["cloud_cover (%)"].mean())
+        agg["cloud_aft"] = aft
+
+    if "sunshine_duration (s)" in m.columns:
+        agg["sunshine_h"] = g["sunshine_duration (s)"].sum() / 3600.0
+
+    if "shortwave_radiation (W/m²)" in m.columns:
+        agg["sw_rad_MJ"] = (g["shortwave_radiation (W/m²)"].sum()
+                            * sec_per_slot / 1e6)
+
+    daily = pd.DataFrame(agg).reset_index().rename(columns={"_date": "time"})
+    return daily
+
+
 def load_interpolated_6h(csv1=DEFAULT_METEO_6H, csv2=DEFAULT_METEO_6H_2,
                           lat_t=LAT_TARGET, lon_t=LON_TARGET,
-                          hourly_csv=DEFAULT_METEO_HOURLY) -> Optional["pd.DataFrame"]:
+                          hourly_csv=DEFAULT_METEO_HOURLY,
+                          hourly_csv2=DEFAULT_METEO_HOURLY_2) -> Optional["pd.DataFrame"]:
     """Muat data sub-harian, agregasi harian per stasiun, IDW-merge hasil harian.
 
-    Prioritas sumber untuk P1:
-      1. hourly_csv  (open-meteo-7.49S112.54E28m_hourly10yr.csv) — akurasi tertinggi:
-         sunshine_h benar (sum 24 slot), dtr benar (peak siang + min pre-dawn),
-         cloud_aft dari slot 12–17, sw_rad_MJ dari integral 1 jam per slot.
-      2. csv1        (open-meteo-7.49S112.54E28m_6hour10yr.csv)  — fallback 6H P1.
-      P2 selalu dari csv2 (6H).
+    Prioritas sumber per stasiun (EV06b):
+      P1:
+        1. hourly_csv  (open-meteo-7.49S112.54E28m_hourly10yr.csv)  — akurasi tertinggi:
+           sunshine_h benar (sum 24 slot), dtr benar (peak siang + min pre-dawn),
+           cloud_aft dari slot 12–17, sw_rad_MJ dari integral 1 jam per slot.
+        2. csv1        (open-meteo-7.49S112.54E28m_6hour10yr.csv)   — fallback 6H P1.
+      P2:
+        1. hourly_csv2 (open-meteo-7.56S112.56E28m_hourly10yr.csv)  — 1H P2 (BARU EV06b)
+        2. csv2        (open-meteo-7.56S112.56E28m_6hour10yr.csv)   — fallback 6H P2.
 
     Strategi: tiap stasiun diagregasi ke harian dengan parameter resolusinya
     masing-masing, lalu IDW-merge hasil harian — menghindari resample lintas
     resolusi yang merusak akumulasi (sunshine, sw_rad).
+
+    Implementasi agregasi memakai :func:`_aggregate_to_daily` (vektorisasi
+    reducer groupby) — lihat docstring fungsi tersebut untuk rasional
+    optimasi dan bukti kesetaraan numerik dengan versi lama.
 
     Mengembalikan DataFrame dengan kolom harian:
       tcwv, dtr, cloud_mean, cloud_aft, sm28_100, sunshine_h, sw_rad_MJ, vpd
@@ -2120,77 +2324,43 @@ def load_interpolated_6h(csv1=DEFAULT_METEO_6H, csv2=DEFAULT_METEO_6H_2,
     if not HAS_PANDAS:
         return None
 
-    path_hourly = find_data_file(hourly_csv)
-    path1       = find_data_file(csv1)
-    path2       = find_data_file(csv2)
+    path_hourly  = find_data_file(hourly_csv)    # P1 hourly
+    path_hourly2 = find_data_file(hourly_csv2)   # P2 hourly — BARU EV06b
+    path1        = find_data_file(csv1)
+    path2        = find_data_file(csv2)
 
-    use_hourly_p1 = path_hourly is not None
-    if not use_hourly_p1 and path1 is None and path2 is None:
+    use_hourly_p1 = path_hourly  is not None
+    use_hourly_p2 = path_hourly2 is not None     # BARU EV06b
+    if not use_hourly_p1 and not use_hourly_p2 and path1 is None and path2 is None:
         return None
 
     w1, w2 = _idw_weights(lat_t, lon_t, [(LAT_P1, LON_P1), (LAT_P2, LON_P2)])
 
-    def _read(path):
-        df = pd.read_csv(path, skiprows=3)
-        df["time"] = pd.to_datetime(df["time"])
-        return df.sort_values("time").reset_index(drop=True)
-
-    def _agg_to_daily(m, aft_slots, sec_per_slot):
-        """Agregasi sub-harian ke harian; aft_slots dan sec_per_slot sesuai resolusi."""
-        m = m.copy()
-        m["_date"] = pd.to_datetime(m["time"]).dt.normalize()
-        m["_hour"] = pd.to_datetime(m["time"]).dt.hour
-
-        def _agg(g):
-            out = {}
-            if "total_column_integrated_water_vapour (kg/m²)" in g:
-                out["tcwv"] = g["total_column_integrated_water_vapour (kg/m²)"].mean()
-            if "temperature_2m (°C)" in g:
-                out["dtr"] = (g["temperature_2m (°C)"].max()
-                              - g["temperature_2m (°C)"].min())
-            if "cloud_cover (%)" in g:
-                out["cloud_mean"] = g["cloud_cover (%)"].mean()
-                day_slots = g[g["_hour"].isin(aft_slots)]
-                out["cloud_aft"] = (day_slots["cloud_cover (%)"].mean()
-                                     if len(day_slots) > 0 else np.nan)
-            if "soil_moisture_28_to_100cm (m³/m³)" in g:
-                out["sm28_100"] = g["soil_moisture_28_to_100cm (m³/m³)"].mean()
-            if "soil_moisture_0_to_7cm (m³/m³)" in g:
-                out["sm_sh"] = g["soil_moisture_0_to_7cm (m³/m³)"].mean()
-            if "soil_temperature_0_to_7cm (°C)" in g:
-                out["sT_sh"] = g["soil_temperature_0_to_7cm (°C)"].mean()
-            if "soil_temperature_100_to_255cm (°C)" in g:
-                out["sT_dp"] = g["soil_temperature_100_to_255cm (°C)"].mean()
-            if "sunshine_duration (s)" in g:
-                out["sunshine_h"] = g["sunshine_duration (s)"].fillna(0).sum() / 3600
-            if "shortwave_radiation (W/m²)" in g:
-                out["sw_rad_MJ"] = (g["shortwave_radiation (W/m²)"].fillna(0)
-                                    * sec_per_slot).sum() / 1e6
-            if "vapour_pressure_deficit (kPa)" in g:
-                out["vpd"] = g["vapour_pressure_deficit (kPa)"].mean()
-            return pd.Series(out)
-
-        return (m.groupby("_date").apply(_agg)
-                 .reset_index()
-                 .rename(columns={"_date": "time"}))
-
-    # ── agregasi per stasiun ────────────────────────────────────────────
+    # ── agregasi per stasiun, prioritaskan hourly ──────────────────────
     if use_hourly_p1:
-        agg1 = _agg_to_daily(_read(path_hourly),
-                              aft_slots=list(range(12, 18)), sec_per_slot=3600)
+        agg1 = _aggregate_to_daily(_read_openmeteo_csv(path_hourly),
+                                    aft_slots=list(range(12, 18)),
+                                    sec_per_slot=3600)
     elif path1 is not None:
-        agg1 = _agg_to_daily(_read(path1),
-                              aft_slots=[12, 18], sec_per_slot=21600)
+        agg1 = _aggregate_to_daily(_read_openmeteo_csv(path1),
+                                    aft_slots=[12, 18],
+                                    sec_per_slot=21600)
     else:
         agg1 = None
 
-    if path2 is not None:
-        agg2 = _agg_to_daily(_read(path2),
-                              aft_slots=[12, 18], sec_per_slot=21600)
+    # P2: prioritaskan hourly (BARU EV06b)
+    if use_hourly_p2:
+        agg2 = _aggregate_to_daily(_read_openmeteo_csv(path_hourly2),
+                                    aft_slots=list(range(12, 18)),
+                                    sec_per_slot=3600)
+    elif path2 is not None:
+        agg2 = _aggregate_to_daily(_read_openmeteo_csv(path2),
+                                    aft_slots=[12, 18],
+                                    sec_per_slot=21600)
     else:
         agg2 = None
 
-    # ── IDW merge harian ────────────────────────────────────────────────
+    # ── IDW merge harian ───────────────────────────────────────────────
     if agg1 is None:
         return agg2
     if agg2 is None:
@@ -2225,6 +2395,8 @@ def _prep_8d_from_daily(df: "pd.DataFrame") -> Optional["pd.DataFrame"]:
 
 def live_nowcast(meteo_csv=DEFAULT_METEO_CSV, meteo_csv2=DEFAULT_METEO_CSV2,
                  meteo_6h=DEFAULT_METEO_6H, meteo_6h2=DEFAULT_METEO_6H_2,
+                 meteo_hourly=DEFAULT_METEO_HOURLY,
+                 meteo_hourly2=DEFAULT_METEO_HOURLY_2,
                  enso_csv=DEFAULT_ENSO_CSV,
                  msla_csv=DEFAULT_MSLA_CSV):
     if not HAS_PANDAS:
@@ -2240,7 +2412,9 @@ def live_nowcast(meteo_csv=DEFAULT_METEO_CSV, meteo_csv2=DEFAULT_METEO_CSV2,
     _interp_mode = ("IDW 2 stasiun" if (_p1_ok and _p2_ok)
                     else ("stasiun P1 saja" if _p1_ok else "stasiun P2 saja"))
 
-    df6 = load_interpolated_6h(meteo_6h, meteo_6h2)
+    df6 = load_interpolated_6h(meteo_6h, meteo_6h2,
+                                hourly_csv=meteo_hourly,
+                                hourly_csv2=meteo_hourly2)
     has_6h = df6 is not None and len(df6) > 0
     if has_6h:
         df = df.merge(df6, on="time", how="left")
@@ -2272,7 +2446,7 @@ def live_nowcast(meteo_csv=DEFAULT_METEO_CSV, meteo_csv2=DEFAULT_METEO_CSV2,
                                   means=HMM_T8_means, covs=HMM_T8_covs)
         last_probs = probs[-1]
         last_date  = tail8["time"].iloc[-1].date()
-        hmm_mode   = "8-D (EV04: +TCWV+DTR+cloud+SM-dalam)"
+        hmm_mode   = "8-D (EV06b: +TCWV+DTR+cloud+SM-dalam)"
         df_trend = df_8d
     else:
         df4 = df.dropna(subset=["rain_30d", "wb_30d", "sm_30d", "rh_30d"]).reset_index(drop=True)
@@ -2621,7 +2795,7 @@ def _meteo_musim_block(musim: str, indent: int = 4,
 def print_astro_calib_table() -> None:
     print()
     print(box_top())
-    print(box_row("KALIBRASI ASTRONOMIS — EV04"))
+    print(box_row("KALIBRASI ASTRONOMIS — EV06"))
     print(box_row("JRC_Ephemeris · VSOP87D · IERS 2010 · ΔT HMNAO"))
     print(box_row("Lokasi: −7.5220°LS, 112.5661°BT, 28 m  ·  Rata-rata 2020–2029"))
     print(box_mid())
@@ -2656,7 +2830,7 @@ def print_astro_calib_table() -> None:
         print(row[:W])
 
     print()
-    for ln in textwrap.wrap("† = berdasarkan skenario R30/R10 (EV04). "
+    for ln in textwrap.wrap("† = berdasarkan skenario R30/R10 (EV06). "
                             "Lihat catatan per peristiwa.",
                             width=W, initial_indent="  ",
                             subsequent_indent="    "):
@@ -2785,21 +2959,21 @@ def print_mangsa_today(tanggal: date,
         print(box_row(""))
         print(box_row("[ TRADISIONAL — Reformasi Paku Buwana VII, 1855 ]"))
         print(box_row(f"  Mangsa ke-{trad['no']}: {trad['nama'].upper()}  ·  Musim {trad['musim']}"))
-        print(box_row(f"  Periode: {fmt(trad['mulai'])} — {fmt(trad['akhir'])} ({trad['durasi']} hari)"))
+        print(box_row(f"  Periode: {fmt(trad['mulai'])} — "
+                      f"{fmt(trad['akhir'])} ({trad['durasi']} hari)"))
         first = True
         for raw in trad["ciri"].split("\n"):
             for ln in _wrap_ciri_line(raw, W - 14):
                 print(box_row(f"  Ciri: {ln}" if first else f"        {ln}"))
                 first = False
-        if kal:
-            candra = CIRI_JAWA.get(kal["no"], "")
-            if candra:
-                print(box_row(""))
-                print(box_row("  Candraning Măngsa (tradisional):"))
-                for ln in textwrap.wrap(candra, width=W - 12,
-                                        initial_indent="      ",
-                                        subsequent_indent="      "):
-                    print(box_row(ln))
+        candra = CIRI_JAWA.get(trad["no"], "")
+        if candra:
+            print(box_row(""))
+            print(box_row("  Candraning Măngsa (tradisional):"))
+            for ln in textwrap.wrap(candra, width=W - 12,
+                                    initial_indent="      ",
+                                    subsequent_indent="      "):
+                print(box_row(ln))
 
     print(box_mid())
     if kal:
@@ -3015,8 +3189,8 @@ def print_klimatologi_bulanan() -> None:
 
     # ── RINGKASAN 6H PER MUSIM ──
     print()
-    print(f"  {'RINGKASAN 6H PER MUSIM (EV05)':^{W-2}}")
-    print(f"  {'Nilai = rata-rata musiman (R30 1996–2025)':^{W-2}}")
+    print(f"  {'RINGKASAN 6H PER MUSIM (EV06b)':^{W-2}}")
+    print(f"  {'Nilai = rata-rata musiman (R30 1996–2025, IDW P1+P2)':^{W-2}}")
     print()
     col_w = 11
     hdr = f"  {'Parameter':<22}" + "".join(f"{mu:>{col_w}}" for mu in MUSIM_ORDER)
@@ -3044,7 +3218,7 @@ def print_live_nowcast() -> None:
     print()
     print(box_top())
     print(box_row("NOWCAST LANGSUNG — Analisis Iklim Real-Time"))
-    print(box_row("HMM 8-D (EV05) + SR-EKF Level/Tren (ARCH(1))"))
+    print(box_row("HMM 8-D (EV06b) + SR-EKF Level/Tren (ARCH(1))"))
     print(box_bot())
 
     res = live_nowcast()
@@ -3155,7 +3329,7 @@ def print_live_nowcast() -> None:
     print(f"  IOD  : JMA (DMI) — Saji et al. (1999), Nature 401:360")
     print(f"  Met  : ERA5/ERA5-Land (ECMWF/C3S) + IFS HRES 9km (ECMWF)")
     print(f"  Astro: VSOP87D (IMCCE) + IERS 2010 + HMNAO ΔT")
-    print()                        
+    print()
 
     print()
 
@@ -3194,10 +3368,10 @@ def choose_scenario() -> str:
 
 def show_menu() -> None:
     print()
-    print(box_top("PRANATA MANGSA — EV05 METEO(DAILY+6H)+ENSO+IOD+ASTRO"))
+    print(box_top("PRANATA MANGSA — EV06 METEO(DAILY+6H)+ENSO+IOD+ASTRO"))
     print(box_row("−7.52S112.56E28m · ERA5/Land IFS HRES 1940–2026 · ENSO 1993–2026"))
     print(box_row("IOD_DELTA: DMI bulanan 1950–2025 · mangsa 3–5 · bobot 0.30/0.50"))
-    print(box_row("HMM 8-D (EV05) · VSOP87D + IERS2010 · JRC_Ephemeris 2020–2029"))
+    print(box_row("HMM 8-D (EV06b) · VSOP87D + IERS2010 · JRC_Ephemeris 2020–2029"))
     print(box_mid())
     for item in [
         "  1 › Kalender Tradisional (Paku Buwana VII, 1855)",
@@ -3231,7 +3405,7 @@ def main_loop() -> None:
         if pilihan == "0":
             print()
             print(box_top())
-            print(box_row("Terima kasih. Sampai jumpa!  — Pranata Mangsa EV05"))
+            print(box_row("Terima kasih. Sampai jumpa!  — Pranata Mangsa EV06"))
             print(box_bot())
             print()
             break
@@ -3281,7 +3455,7 @@ def main_loop() -> None:
 
         elif pilihan == "8":
             print_astro_calib_table()
-            
+
         elif pilihan == "9":
             print_data_attribution(detail="lengkap")
 
