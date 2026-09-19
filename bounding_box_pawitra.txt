@@ -1,0 +1,15 @@
+Bounding box GeoJSON (bbox) dengan urutan [west, south, east, north] / [minLon, minLat, maxLon, maxLat]:
+
+```json
+[112.53916495512914, -7.696215832735209, 112.70248304487087, -7.5343381672647896]
+```
+
+Detail:
+
+· West / minLon: 112.53916495512914
+· South / minLat: -7.696215832735209
+· East / maxLon: 112.70248304487087
+· North / maxLat: -7.5343381672647896
+
+Southwest: (112.53916495512914, -7.696215832735209)
+Northeast: (112.70248304487087, -7.5343381672647896)
