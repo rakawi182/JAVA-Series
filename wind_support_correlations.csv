@@ -1,0 +1,10 @@
+variable,r_speed,p_speed,r_sin_dir,r_cos_dir,sig
+Suhu udara 2m (°C),0.4393,0.0,0.3519,0.5167,**
+Kelembaban relatif (%),-0.4292,0.0,-0.36,-0.3687,**
+Tekanan permukaan (hPa),-0.2562,0.0,0.0255,-0.1,**
+VPD (kPa),0.4541,0.0,0.3719,0.3937,**
+Radiasi gelombang pendek (W/m²),0.3862,0.0,0.2387,0.5523,**
+Tutupan awan (%),-0.0417,0.0,-0.1831,0.013,**
+Curah hujan (mm),0.061,0.0,-0.0659,0.0675,**
+Wind shear kecepatan (km/h),0.6456,0.0,-0.0446,-0.1151,**
+Gust factor,-0.3616,0.0,0.0389,0.2487,**
