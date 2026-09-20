@@ -24,9 +24,33 @@ Data source
   CSV 2: open-meteo-7.56S112.56E28m_hourly10yr.csv  (P2)
 
 Both files are ~102,576 hourly rows spanning 2015-01-01 → 2026-09-13.
-IDW-merging uses Haversine distance with p=2 → w1≈0.395, w2≈0.605
-(matches the EV06b VPD weight set in the parent module).  Directional
-fields are merged via unit-vector averaging, NOT scalar average.
+
+IDW weights
+-----------
+For the standard 2-station P1+P2 configuration at the default MJS target,
+this module uses the EV09 volatile-class IDW weights (w1=0.4154 P1,
+w2=0.5846 P2), matching Pranatamangsa_EV09.py's IDW_W1_VPD / IDW_W2_VPD.
+Wind fields belong to the volatile class in EV09 (alongside VPD, TCWV,
+cloud, sunshine, temperature and relative humidity).  For any other
+station configuration, idw_weights() falls back to Haversine p=2 IDW
+so the module remains usable with arbitrary station sets.
+
+Directional fields are merged via unit-vector averaging, NOT scalar
+average.
+
+Wind-component convention
+-------------------------
+This module computes u_comp / v_comp as **unit vectors** (magnitude 1):
+
+    u_comp = −sin( wd10 · π/180 )     u > 0 ⇒ wind FROM west
+    v_comp = −cos( wd10 · π/180 )     v > 0 ⇒ wind FROM south
+
+Unit vectors are the correct choice for directional diagnostics and
+monsoon-reversal detection, where only the SIGN of the zonal component
+matters.  Contrast with wind_analysis.py, which blends full-speed
+vectors (magnitude-aware) for statistical aggregation.  Both modules
+agree on the SIGN convention; they differ only in whether magnitude is
+retained.
 
 Lag convention (canonical — see Section 8)
 -------------------------------------------
@@ -103,6 +127,15 @@ STATION_P2: Tuple[float, float] = (-7.5571175, 112.557350)
 
 DEFAULT_HOURLY_P1 = "open-meteo-7.49S112.54E28m_hourly10yr.csv"
 DEFAULT_HOURLY_P2 = "open-meteo-7.56S112.56E28m_hourly10yr.csv"
+
+# ── EV09 volatile-class IDW weights (matches Pranatamangsa_EV09.py) ──
+# Wind fields belong to the volatile class in EV09 (alongside VPD,
+# TCWV, cloud, sunshine, temperature and relative humidity).  These
+# are the reference weights for the standard 2-station P1+P2
+# configuration; a Haversine p=2 fallback is provided in
+# idw_weights() for non-standard configurations.
+IDW_W1_VOLATILE: float = 0.4154    # P1 (terrain_optimized)
+IDW_W2_VOLATILE: float = 0.5846    # P2 (nearest)
 
 SECTOR_NAMES_8: Tuple[str, ...] = ("N", "NE", "E", "SE", "S", "SW", "W", "NW")
 SECTOR_NAMES_16: Tuple[str, ...] = (
@@ -283,8 +316,35 @@ def idw_weights(
     coords: Sequence[Tuple[float, float]],
     power: float = 2.0,
 ) -> List[float]:
-    """Haversine-based IDW weights (normalised)."""
+    """IDW weights (normalised).
+
+    Fast path
+    ---------
+    For the standard 2-station P1+P2 configuration at the default MJS
+    target, return the EV09 volatile-class weights (w1=0.4154, w2=0.5846)
+    directly.  These are the reference weights used by
+    Pranatamangsa_EV09.py (IDW_W1_VPD / IDW_W2_VPD) and by
+    wind_analysis.py — keeping both modules numerically consistent on
+    the same input archive.
+
+    Fallback
+    --------
+    For any other configuration (custom station set, custom target,
+    different power p), use Haversine distance-weighted IDW with the
+    requested power.  Exact-coincidence short-circuit returns a
+    one-hot weight vector so the caller never divides by zero.
+    """
+    if (len(coords) == 2
+            and coords[0] == STATION_P1
+            and coords[1] == STATION_P2
+            and abs(lat_t - TARGET_LAT) < 1e-6
+            and abs(lon_t - TARGET_LON) < 1e-6):
+        return [IDW_W1_VOLATILE, IDW_W2_VOLATILE]
+
     dists = [_haversine(c[0], lat_t, c[1], lon_t) for c in coords]
+    for i, d in enumerate(dists):
+        if d < 1e-6:
+            return [1.0 if j == i else 0.0 for j in range(len(coords))]
     raw = [1.0 / (d ** power) for d in dists]
     s = sum(raw)
     return [r / s for r in raw]
@@ -421,10 +481,15 @@ def attach_time_features(df: "pd.DataFrame") -> "pd.DataFrame":
 
     df["mangsa"] = df["dopy"].apply(_dopy_to_mangsa_no)
 
-    # Meteorological wind components.
+    # ── Meteorological wind components — UNIT VECTOR (magnitude = 1) ──
+    # By design for this module: we care about the SIGN of the zonal
+    # component for monsoon-reversal detection, not its magnitude.
     # wd10 is the direction wind blows FROM, so:
-    #     u = −speed·sin(wd)  → u > 0 means wind FROM west (westerly)
-    #     v = −speed·cos(wd)  → v > 0 means wind FROM south (southerly)
+    #     u = −sin(wd)  → u > 0 means wind FROM west (westerly)
+    #     v = −cos(wd)  → v > 0 means wind FROM south (southerly)
+    # Contrast with wind_analysis.py, which blends full-speed vectors
+    # (magnitude-aware) for statistical aggregation.  Both modules share
+    # the same SIGN convention.
     if "wd10" in df.columns:
         rad = np.deg2rad(df["wd10"].values)
         df["u_comp"] = -np.sin(rad)
@@ -810,7 +875,7 @@ def print_header(title: str, subtitle: str = "") -> None:
     print(box_row(title))
     if subtitle:
         print(box_row(subtitle))
-    print(box_row("ERA5/ERA5-Land IFS-HRES · P1+P2 IDW (Haversine p=2)"))
+    print(box_row("ERA5/ERA5-Land IFS-HRES · P1+P2 IDW (EV09 volatile class)"))
     print(box_bot())
 
 
@@ -1512,6 +1577,8 @@ def _detect_all_reversals(df: "pd.DataFrame"
     daily = _rolling_daily_ucomp(df)
     out: List[Tuple[int, float, int]] = []
     for py in range(2015, 2027):
+        # py=2026 anchors at 2026-06-22; the hourly archive ends before
+        # the full 365-day window elapses, so the guard below skips it.
         anchor = pd.Timestamp(year=py, month=ANCHOR_MONTH, day=ANCHOR_DAY)
         end = anchor + pd.Timedelta(days=365)
         sub = daily[(daily["date"] >= anchor) & (daily["date"] < end)]
@@ -1723,7 +1790,7 @@ MENU_ITEMS = (
 def show_menu() -> None:
     print()
     print(box_top("PRANATA MANGSA — WIND ANALYSIS (EV09-WIND)"))
-    print(box_row("Hourly 10yr P1+P2 · IDW Haversine p=2 · MJS target point"))
+    print(box_row("Hourly 10yr P1+P2 · IDW EV09 volatile class · MJS target point"))
     print(box_row("−7.5220°LS, 112.5661°BT, 28 m"))
     print(box_mid())
     for item in MENU_ITEMS:
