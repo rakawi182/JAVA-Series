@@ -47,6 +47,9 @@ def build(df) -> dict:
         "start": str(df["time"].min().date()),
         "end": str(df["time"].max().date()),
         "generated": datetime.now().isoformat(timespec="seconds"),
+        # ── TAMBAHAN: dokumentasi strategi IDW ──────────────────────
+        "idw_class": "EV09-volatile",
+        "idw_weights": {"w1_P1": 0.4154, "w2_P2": 0.5846},
     }}
 
     # ═══ R1 · Wind rose ═══
@@ -279,7 +282,7 @@ def build(df) -> dict:
                   "wd10": n(r["wd10"]), "gust": n(r["gust10"]),
                   "ws10": n(r["ws10"]), "precip": n(r["precip"]) or 0.0,
                   "cloud": n(r["cloud"]),
-                  "mangsa": int(r["mangsa"]) if np.isfinite(r["mangsa"]) else None}
+                  "mangsa": int(r["mangsa"]) if pd.notna(r["mangsa"]) else None}
                  for _, r in s.iterrows()]
 
     pcts = [50, 75, 90, 95, 99, 99.9, 99.99]
@@ -338,7 +341,7 @@ def build(df) -> dict:
             ("cloud_lo", 0.25, "Cloud rendah ≤ P25"),
         ]:
             t = mg[col].quantile(q)
-            sub = mg[mg[col] <= t] if q <= 0.5 else mg[mg[col] >= t]
+            sub = mg[mg[col] >= t] if op == ">=" else mg[mg[col] <= t]
             if len(sub) < 20:
                 continue
             pe = float(sub["ev"].mean())
