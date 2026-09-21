@@ -410,18 +410,27 @@ def detect_dvpd(df):
 # ══════════════════════════════════════════════════════════════════════════
 # M5 · CUSUM pada MPCI_roll  (Page 1954, diperbaiki dari v4)
 # ══════════════════════════════════════════════════════════════════════════
+CUSUM_LO = 90.0   # CUSUM dimulai fresh dari dopy ini (bukan SEARCH_LO=60)
+                   # Alasan: MPCI masih sangat negatif di dopy 60-89 (puncak East
+                   # monsoon) sehingga CUSUM yang dimulai dari sana terakumulasi
+                   # dari noise dan bisa false-trigger di dopy 62-63 pada tahun
+                   # El Niño kuat (2015, 2018, 2019). Dengan fresh-start di dopy 90,
+                   # akumulasi CUSUM murni mencerminkan deviasi dari baseline setelah
+                   # East monsoon mulai melemah. (Page 1954, praktik standar.)
+
 def detect_cusum_mpci(df):
     """
-    CUSUM pada MPCI_roll harian.
-    Perubahan dari v4: sinyal MPCI_roll (bukan Δu) — lebih smooth, stabil.
+    CUSUM pada MPCI_roll harian. (Page 1954, Biometrika 41:100–115)
 
-    Baseline: dopy 60–120 (East monsoon murni)
+    Fix v5.1: CUSUM di-reset dan dimulai FRESH dari dopy CUSUM_LO=90,
+    bukan dari SEARCH_LO=60. Perbaikan ini menghilangkan false-positive
+    di dopy 62–63 yang terjadi karena akumulasi noise MPCI di awal window.
+
+    Baseline: dopy 60–120 (East monsoon murni) — tetap sama untuk μ,σ
+    Fresh-start: akumulasi CUSUM dimulai dari dopy 90
     Slack k: 0.5 × σ_baseline
-    Threshold h: 3 × σ_baseline (disesuaikan dengan skala MPCI)
-    Sustain: 5 hari
-
-    Ini mendeteksi kapan MPCI secara kumulatif bergerak di atas baseline
-    sebesar lebih dari 3σ — artinya onset jelas secara statistik.
+    Threshold h: 3 × σ_baseline
+    Sustain: 5 hari dengan cp > 0.7h
     """
     daily=_mpci_daily(df)
     if daily is None: return None
@@ -430,19 +439,22 @@ def detect_cusum_mpci(df):
     sig=win["mpci_roll"].values; dpy=win["dopy"].values
     sig=np.where(np.isfinite(sig),sig,np.nanmean(sig))
 
+    # Baseline stats dari East monsoon murni (dopy 60–120)
     base_mask=(dpy>=DRY_LO)&(dpy<=DRY_HI)
     base=sig[base_mask]; base=base[np.isfinite(base)]
     if len(base)<10: return None
     mu_b=float(np.mean(base)); sd_b=float(np.std(base))+1e-9
     k=0.5*sd_b; h=3.0*sd_b
 
+    # Akumulasi CUSUM dimulai fresh dari dopy CUSUM_LO=90
+    start_idx=int(np.searchsorted(dpy, CUSUM_LO))
     cp=np.zeros(len(sig))
-    for i in range(1,len(sig)):
+    for i in range(start_idx+1, len(sig)):
         v=sig[i]
-        if np.isfinite(v): cp[i]=max(0.,cp[i-1]+(v-mu_b)-k)
+        if np.isfinite(v): cp[i]=max(0., cp[i-1]+(v-mu_b)-k)
 
-    for i in range(1,len(cp)):
-        if not(SEARCH_LO<=dpy[i]<=SEARCH_HI): continue
+    for i in range(start_idx+1, len(cp)):
+        if not(CUSUM_LO<=dpy[i]<=SEARCH_HI): continue
         if cp[i]>h:
             fut=cp[i:i+5]
             if np.all(fut>h*0.7): return float(dpy[i])
