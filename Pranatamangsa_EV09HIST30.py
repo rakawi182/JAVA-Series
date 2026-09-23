@@ -340,13 +340,15 @@ LIMITATIONS AND UNCERTAINTY ANALYSIS
   I. METEOROLOGICAL CALIBRATION LIMITATIONS
 
   I.1  Hourly data period span
-       METEO_MANGSA_6H recalibration uses ERA5/Land IFS-HRES 1-hour
+       METEO_MANGSAs_6H recalibration uses ERA5/Land IFS-HRES 1-hour
        resolution data from TWO reference stations (P1 −7.487°S
        112.538°E and P2 −7.557°S 112.557°E, both 28 m elevation) over
-       2015–2025 (11 years, IDW-merged 102,480 overlap points). The
-       standard WMO climatological reference period is 30 years
-       (1991–2020 or 1996–2025). Using 11 years reduces the number of
-       degrees of freedom and increases the mean-estimation uncertainty.
+       1995–2026 (31 pranata-tahun; ~277.800 timestep IDW-merged).
+       The standard WMO climatological reference period is 30 years
+       (1991–2020 or 1996–2025); the current span meets and slightly
+       exceeds this requirement. The 31-year period resolves the
+       degrees-of-freedom limitation that affected the previous
+       11-year calibration (EV09 v2.0.0).
 
   I.2  Warm-period bias
        Comparative analysis against daily P1 1996–2025 (R30) shows
@@ -354,10 +356,14 @@ LIMITATIONS AND UNCERTAINTY ANALYSIS
        air temperature) and drier (relative humidity 1.8–5.1% lower)
        than the R30 mean as a whole. This difference reflects a
        regional climate-warming signal, not a sampling artifact.
-       Consequently, VPD values in METEO_MANGSA_6H likely represent
-       the most recent decade better than the 30-year mean, but may
-       exceed a stationary long-term climatological estimate by
-       0.02–0.24 kPa depending on the mangsa.
+
+       The 11-year (2015–2025) calibration inherent in EV09 v2.0.0
+       inherited this warm-period bias. The 31-year recalibration
+       (EV09-HIST30) partially corrects it by averaging over the
+       pre-warming baseline (1995–2014) and the recent decade
+       (2015–2026). Residual bias is estimated at less than 0.05 kPa
+       in most mangsa; the largest corrections are observed in
+       Kasa (−0.130 kPa), Karo (−0.150 kPa), and Desta (−0.190 kPa).
 
   I.3  Spatial representation
        EV09 uses HYBRID calibration — EV08 for volatile fields, avg(EV08,EV08b)
@@ -1191,43 +1197,40 @@ METEO_BULANAN: Dict[int, Tuple] = {
     12: ( 402, 13.0, 3.60,  9.35, 0.370, 81.7, 30.7, 23.3,  9.4, 17.2),
 }
 
-# EV09 HYBRID: volatile fields (vpd,tcwv,cloud,sun_h) from EV08 adaptive IDW;
-# consensus fields (sm_sh,sm_dp,sT_sh,sT_dp) from avg(EV08,EV08b).
-# Source: P1 & P2 hourly 2015–2026, 102,480 timestep.
+# EV09-HIST30: volatile ← EV08 adaptive IDW; consensus ← avg(EV08, EV08b).
+# Source: P1 & P2 hourly 1995–2026, ~277.800 timestep · N = 31 pranata-tahun.
+# Weighted combination: R31 (1995–2025) ∘ R11 (2015–2025) → 1995–2026.
 # Tuple: (vpd, tcwv, cloud, cloud_aft, sun_h, sm_sh, sm_dp, sT_sh, sT_dp)
-# vpd uncertainty: see M6H_VPD_SIGMA below.
 METEO_MANGSA_6H: Dict[int, Tuple] = {
-     1: (1.345, 35.1, 48, 54, 10.86, 0.138, 0.174, 28.2, 27.9),  # Kasa     σvpd=0.101
-     2: (1.542, 33.7, 46, 50, 11.01, 0.114, 0.154, 28.9, 28.0),  # Karo     σvpd=0.095
-     3: (1.692, 35.8, 55, 60, 11.04, 0.112, 0.140, 29.8, 28.1),  # Katiga   σvpd=0.072
-     4: (1.602, 39.7, 65, 66, 10.94, 0.143, 0.137, 30.2, 28.4),  # Kapat    σvpd=0.122
-     5: (1.169, 46.8, 78, 79, 10.06, 0.206, 0.143, 29.8, 28.8),  # Kalima   σvpd=0.239 ⚠
-     6: (0.627, 52.6, 91, 91,  8.51, 0.297, 0.206, 28.1, 28.8),  # Kanem    σvpd=0.185 ⚠
-     7: (0.480, 54.1, 92, 93,  7.80, 0.338, 0.285, 26.9, 28.2),  # Kapitu   σvpd=0.083
-     8: (0.491, 52.9, 88, 90,  8.53, 0.348, 0.321, 26.8, 27.7),  # Kawolu   σvpd=0.025
-     9: (0.547, 52.5, 84, 87,  9.19, 0.339, 0.321, 27.2, 27.4),  # Kasanga  σvpd=0.029
-    10: (0.676, 49.8, 77, 79,  9.64, 0.315, 0.304, 27.6, 27.4),  # Kasadasa σvpd=0.072
-    11: (0.949, 45.8, 62, 66, 10.34, 0.243, 0.262, 28.2, 27.6),  # Desta    σvpd=0.093
-    12: (1.022, 42.9, 59, 63, 10.42, 0.200, 0.214, 28.2, 27.9),  # Sada     σvpd=0.079
+     1: (1.215, 34.4, 50, 57, 10.80, 0.177, 0.230, 27.4, 27.1),  # Kasa       σ=0.1010  Δvpd=-0.130 Δsun=-0.06
+     2: (1.392, 32.9, 50, 57, 10.47, 0.143, 0.205, 28.0, 27.2),  # Karo       σ=0.0950  Δvpd=-0.150 Δsun=-0.54
+     3: (1.570, 33.8, 53, 58, 10.82, 0.138, 0.190, 29.0, 27.3),  # Katiga     σ=0.0720  Δvpd=-0.122 Δsun=-0.22
+     4: (1.509, 37.4, 62, 64, 11.09, 0.172, 0.181, 29.4, 27.7),  # Kapat      σ=0.1220  Δvpd=-0.093 Δsun=+0.15
+     5: (1.046, 45.2, 77, 79, 10.06, 0.259, 0.203, 28.8, 28.1),  # Kalima     σ=0.2390⚠ Δvpd=-0.123 Δsun=+0.00
+     6: (0.535, 51.0, 90, 91,  8.37, 0.354, 0.304, 27.2, 28.0),  # Kanem      σ=0.1850⚠ Δvpd=-0.092 Δsun=-0.14
+     7: (0.421, 52.5, 92, 93,  7.93, 0.377, 0.358, 26.4, 27.4),  # Kapitu     σ=0.0830  Δvpd=-0.059 Δsun=+0.13
+     8: (0.404, 51.9, 89, 91,  7.94, 0.381, 0.372, 26.3, 27.0),  # Kawolu     σ=0.0250  Δvpd=-0.087 Δsun=-0.59
+     9: (0.476, 50.8, 83, 86,  9.01, 0.373, 0.366, 26.7, 26.8),  # Kasanga    σ=0.0290  Δvpd=-0.071 Δsun=-0.18
+    10: (0.584, 48.1, 76, 78,  9.53, 0.353, 0.352, 26.9, 26.8),  # Kasadasa   σ=0.0720  Δvpd=-0.092 Δsun=-0.11
+    11: (0.759, 44.5, 63, 68,  9.76, 0.302, 0.312, 27.2, 26.9),  # Desta      σ=0.0930  Δvpd=-0.190 Δsun=-0.58
+    12: (0.928, 40.7, 58, 63, 10.42, 0.248, 0.270, 27.2, 27.1),  # Sada       σ=0.0790  Δvpd=-0.094 Δsun=-0.00
 }
 
-# Per-mangsa VPD interpolation uncertainty (1-σ, kPa).
-# σ = max(|EV08−EV08b| model spread, SE_GIDW from 11-yr sample).
-# For 95% CI: multiply by 1.96.  ⚠ = high epistemic uncertainty (gradient
-# disagreement ≥ 15%); field verification recommended for those mangsa.
+# σ = max(|EV08−EV08b| model spread, SE_GIDW_31yr).
+# M8 dan M9 turun sedikit karena SE sampling berkurang (n 11→31).
+# Semua field lain masih didominasi model spread — tidak berubah.
 M6H_VPD_SIGMA: Dict[int, float] = {
-     1: 0.1010,   2: 0.0950,   3: 0.0721,   4: 0.1220,
-     5: 0.2390,   6: 0.1850,   7: 0.0830,   8: 0.0254,
-     9: 0.0295,  10: 0.0720,  11: 0.0930,  12: 0.0791,
+     1: 0.1010,   2: 0.0950,   3: 0.0720,   4: 0.1220,
+     5: 0.2390,   6: 0.1850,   7: 0.0830,   8: 0.0250,
+     9: 0.0290,  10: 0.0720,  11: 0.0930,  12: 0.0790,
 }
 
-# EV09: duration-weighted from EV09 METEO_MANGSA_6H.
-# (vpd, tcwv, cloud, sun_h)
+# EV09-HIST30: duration-weighted dari METEO_MANGSA_6H di atas.
 METEO_MUSIM_6H: Dict[str, Tuple] = {
-    "Katiga":   (1.491, 34.9, 49, 10.95),  # EV08b:1.407 EV08:1.496
-    "Labuh":    (1.038, 47.6, 80,  9.59),  # EV08b:1.201 EV08:1.042
-    "Rendheng": (0.501, 53.3, 89,  8.37),  # EV08b:0.532 EV08:0.484
-    "Mareng":   (0.909, 45.5, 65, 10.19),  # EV08b:0.859 EV08:0.902
+    "Katiga":   (1.358, 33.8, 51, 10.72),  # EV09→: Δvpd=-0.133 Δsun=-0.23
+    "Labuh":    (0.936, 45.8, 79,  9.57),  # EV09→: Δvpd=-0.102 Δsun=-0.02
+    "Rendheng": (0.431, 51.9, 89,  8.22),  # EV09→: Δvpd=-0.070 Δsun=-0.15
+    "Mareng":   (0.790, 43.7, 64, 10.00),  # EV09→: Δvpd=-0.119 Δsun=-0.19
 }
 
 # Extreme absolute temperatures (R30 1996–2025): (T_max_abs, T_min_abs).
