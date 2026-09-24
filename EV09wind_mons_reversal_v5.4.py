@@ -888,7 +888,7 @@ def detect_lanczos_vecphase(df: pd.DataFrame, py: int,
     daily = _daily_lanczos(df, window_length, cutoff_days)
 
     anchor = pd.Timestamp(year=py, month=ANCHOR_MONTH, day=ANCHOR_DAY)
-    end = anchor + pd.Timedelta(days=365)
+    end = anchor + pd.DateOffset(years=1)
     sub = (daily[(daily["date"] >= anchor) & (daily["date"] < end)]
            .reset_index(drop=True))
     if len(sub) < 60:

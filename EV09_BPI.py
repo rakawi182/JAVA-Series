@@ -669,11 +669,11 @@ def _compute_bpi_thresholds(df: pd.DataFrame) -> Dict[str, float]:
         d.rename(columns={"_date": "date"}), dc="date"
     )["dopy"] if False else None  # lazy: hitung via daily field
     
-    # Hitung daily dopy secara sederhana
-    anchor_doy = 173  # ~22 Juni
-    d["_doy"] = pd.to_datetime(d["time"]).dt.dayofyear
+    # Hitung daily dopy
+    t = pd.to_datetime(d["time"])
+    anchor_doy = t.dt.year.map(lambda y: pd.Timestamp(y, 6, 22).dayofyear)
+    d["_doy"] = t.dt.dayofyear
     d["dopy_raw"] = (d["_doy"] - anchor_doy) % 365
-
     dry = d[(d["dopy_raw"] >= DRY_LO) & (d["dopy_raw"] <= DRY_HI)]
     
     thr: Dict[str, float] = {}

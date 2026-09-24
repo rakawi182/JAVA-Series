@@ -412,6 +412,16 @@ LIMITATIONS AND UNCERTAINTY ANALYSIS
           Desta:   0.856 ± 0.129 kPa    Sada:     1.010 ± 0.158 kPa
         (EV06b IDW reference: Kasa 1.352±0.168, Katiga 1.690±0.160,
          Kapitu 0.467±0.045, Kasadasa 0.656±0.092)
+         
+        95% CI of VPD, per mangsa (EV09-HIST30 hybrid, 1995–2026, 31 yr):
+          Kasa:    1.215 ± 0.101 kPa    Kapat:    1.509 ± 0.122 kPa
+          Karo:    1.392 ± 0.095 kPa    Kalima:   1.046 ± 0.239 kPa
+          Katiga:  1.570 ± 0.072 kPa    Kanem:    0.535 ± 0.185 kPa
+          Kapitu:  0.421 ± 0.083 kPa    Kawolu:   0.404 ± 0.025 kPa
+          Kasanga: 0.476 ± 0.029 kPa    Kasadasa: 0.584 ± 0.072 kPa
+          Desta:   0.759 ± 0.093 kPa    Sada:     0.928 ± 0.079 kPa
+        (σ dari M6H_VPD_SIGMA = max model-spread, SE_GIDW_31yr;
+         interpretasi 1-σ, bukan 95% CI — kalikan 1.96 untuk CI)         
 
         95% CI of sun_h, per mangsa (EV07 GIDW P1+P2):
           Kasa:    10.78 h    Kapat:  11.00 h    Kapitu:   8.17 h
@@ -1466,7 +1476,15 @@ _DVPD_DT: float = 0.075                # kPa/K
 _DVPD_DRH: float = -0.030              # kPa per %RH
 _DTCWV_DT: float = -1.75               # kg/m² per K
 _DSUN_DRAD: float = 0.20               # h/day per MJ/m²
-
+_DCLOUD_DRAD: float = -5.0             # % per MJ/m²  — IOD only
+# Cloud correction hanya untuk IOD (Walker-cell displacement mengubah
+# tutupan awan secara lebih langsung via perubahan SST lokal dan
+# konveksi regional). ENSO tidak dikoreksi di sini karena sinyal cloud
+# ENSO sudah terserap di sun_h via _DSUN_DRAD.
+# Konstanta −5.0 diambil dari JS (meteoForDopyRange, IOD block):
+#   m6h[2] -= 5.0 * dRadI  (cloud)
+#   m6h[3] -= 5.0 * dRadI  (cloud_aft)
+# Berlaku untuk pIOD maupun nIOD (tanda mengikuti dRad).
 
 @lru_cache(maxsize=512)
 def meteo_for_dopy_range(
@@ -1557,11 +1575,18 @@ def meteo_for_dopy_range(
             continue
         d_tx, d_tn, _, _, d_rad, d_rh = delta
         d_tmean = 0.5 * (d_tx + d_tn)
-        m6h_vals[0] = max(0.0, m6h_vals[0] + _DVPD_DT * d_tmean
-                                  + _DVPD_DRH * d_rh)
+        m6h_vals[0] = max(0.0, m6h_vals[0] + _DVPD_DT  * d_tmean
+                                            + _DVPD_DRH * d_rh)
         m6h_vals[1] = max(0.0, m6h_vals[1] + _DTCWV_DT * d_tmean)
         m6h_vals[4] = min(13.0, max(6.0,
                           m6h_vals[4] + _DSUN_DRAD * d_rad))
+        # Cloud correction: hanya aktif untuk IOD (ENSO diabaikan — lihat
+        # komentar di _DCLOUD_DRAD). Sebelumnya ada di JS tapi tidak di Python.
+        if phase in ("pIOD", "nIOD"):
+            m6h_vals[2] = min(100.0, max(0.0,
+                              m6h_vals[2] + _DCLOUD_DRAD * d_rad))
+            m6h_vals[3] = min(100.0, max(0.0,
+                              m6h_vals[3] + _DCLOUD_DRAD * d_rad))
 
     return m_tuple, tuple(m6h_vals)
 
